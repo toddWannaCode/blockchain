@@ -1,10 +1,11 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use chrono::prelude::*;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Block {
-    index: u32,
+    pub index: u32,
     pub timestamp: DateTime<Utc>,
     pub data: String,
     pub previous_hash: Option<u64>,
@@ -30,18 +31,34 @@ impl Block {
             next_hash: None,
             self_hash: None
         };
-        let self_hash = Some(calculate_hash(&temp));
+        let self_hash = Some(Block::calculate_hash(&temp));
         Block {
             self_hash,
             ..temp
         }
     }
+    pub fn calculate_hash<T: Hash>(t: &T) -> u64 {
+        let mut s = DefaultHasher::new();
+        t.hash(&mut s);
+        s.finish()
+    }
+    pub fn empty() -> Block{
+        Block {
+            index: 0,
+            data: String::new(),
+            timestamp: Utc::now(),
+            previous_hash: None,
+            next_hash: None,
+            self_hash: None
+        }
+    }
+     
 }
 
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "  Block: {{\n    timestamp: {},\n    data: {},\n    hash:{:?}\n  }}", self.timestamp, self.data, self.self_hash)
+    }
 }
 
 #[cfg(test)]
@@ -50,7 +67,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let b = Block::new(1, "Test".to_string());
-        println!("{:?}", b);
+        // let b = Block::new(1, "Genesis".to_string());
+        // println!("{}", b);
     }
 }
